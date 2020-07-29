@@ -71,6 +71,7 @@
             color: white;
             margin-bottom: 15px;
         }
+
         .success {
             padding: 20px;
             background-color: chartreuse;
@@ -120,6 +121,29 @@
                     </div>
                 </form>
             </div>
+            @if(session()->has('result'))
+            {{-- <h2>datas</h2> --}}
+            <table>
+                <thead>
+                    <th>#</th>
+                    <th>MAT_CODE</th>
+                    <th>PLANT_CODE</th>
+                    <th>VENDOR_ID</th>
+                    <th>VENDOR_NAME</th>
+                </thead>
+                <tbody>
+                    @foreach (session()->get('result') as $key => $item)
+                    <tr>
+                        <td>{{$key+1}}</td>
+                        <td>{{$item->MAT_CODE}}</td>
+                        <td>{{$item->PLANT_CODE}}</td>
+                        <td>{{$item->VENDOR_ID}}</td>
+                        <td>{{$item->VENDOR_NAME}}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @endif
         </div>
     </div>
 </body>

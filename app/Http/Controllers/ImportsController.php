@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use App\Imports\VendorsImport;
 use App\Vendor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ImportsController extends Controller
 {
+    public function index()
+    {
+        return view('welcome');
+    }
     public function import(Request $request)
     {
         try {
@@ -23,7 +28,6 @@ class ImportsController extends Controller
                 return \back()->with('error', 'imported error format header!');
             }
             $validate = \false;
-            // \dd($results[0][0]);
             foreach ($results[0][0] as $key => $value) {
                 if (strtoupper($value) == 'MAT_CODE') {
                     $results[0][0][0] = 'MAT_CODE';
@@ -46,6 +50,7 @@ class ImportsController extends Controller
                 }
             }
             array_splice($results[0], 0, 1);
+            $matcode = array();
             foreach ($results[0] as $key => $value) {
                 
                 $arr = mb_str_split($value[0]);
@@ -59,7 +64,7 @@ class ImportsController extends Controller
                     unset($arr[$index]);
                 }
                 $value[0] = implode($arr);
-                
+                \array_push($matcode,$value[0]);
                 $vendor = Vendor::find($value[0]);
                 if ($vendor) {
                     # update
@@ -76,7 +81,9 @@ class ImportsController extends Controller
                     $vendor->save();
                 }
             }
-            return \back()->with('success', 'imported successfully');
+            $result = DB::table('tbMatVendor')->whereIn('PLANT_CODE',['9771'])->whereIn('MAT_CODE',$matcode)->get();
+            $request->session()->flash('success',  'imported successfully');
+            return \redirect()->route('home')->with(['result' => $result]);
         } catch (\Throwable $th) {
             throw $th;
         }
