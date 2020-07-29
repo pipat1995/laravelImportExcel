@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Imports\VendorsImport;
 use App\Vendor;
+// use Barryvdh\Debugbar\Middleware\DebugbarEnabled;
+use Debugbar;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -12,7 +15,12 @@ class ImportsController extends Controller
 {
     public function index()
     {
-        return view('welcome');
+
+        try {
+            return \view('welcome');
+        } catch (Exception $e) {
+            Debugbar::addException($e);
+        }
     }
     public function import(Request $request)
     {
@@ -52,19 +60,19 @@ class ImportsController extends Controller
             array_splice($results[0], 0, 1);
             $matcode = array();
             foreach ($results[0] as $key => $value) {
-                
+
                 $arr = mb_str_split($value[0]);
                 $delIndex = array();
                 foreach ($arr as $key => $data) {
-                    if (mb_convert_encoding($data,"SJIS") == "?" || mb_convert_encoding($data,"SJIS") == " ") {
-                        \array_push($delIndex,$key);
+                    if (mb_convert_encoding($data, "SJIS") == "?" || mb_convert_encoding($data, "SJIS") == " ") {
+                        \array_push($delIndex, $key);
                     }
                 }
                 foreach ($delIndex as $key => $index) {
                     unset($arr[$index]);
                 }
                 $value[0] = implode($arr);
-                \array_push($matcode,$value[0]);
+                \array_push($matcode, $value[0]);
                 $vendor = Vendor::find($value[0]);
                 if ($vendor) {
                     # update
@@ -81,11 +89,21 @@ class ImportsController extends Controller
                     $vendor->save();
                 }
             }
-            $result = DB::table('tbMatVendor')->whereIn('PLANT_CODE',['9771'])->whereIn('MAT_CODE',$matcode)->get();
+            $result = DB::table('tbMatVendor')->whereIn('PLANT_CODE', ['9771'])->whereIn('MAT_CODE', $matcode)->get();
             $request->session()->flash('success',  'imported successfully');
+
+            Debugbar::info(['arr0', 'arr1', 'arr2']);
+            Debugbar::error('Error');
+            Debugbar::debug('Debug');
+            Debugbar::notice('Notice');
+            Debugbar::warning('Warning');
+            Debugbar::critical('Critical');
+            Debugbar::alert('Alert');
+            Debugbar::emergency('Emergency');
+            Debugbar::addMessage('Another message', 'mylabel');
             return \redirect()->route('home')->with(['result' => $result]);
-        } catch (\Throwable $th) {
-            throw $th;
+        } catch (Exception $e) {
+            Debugbar::addException($e);
         }
     }
 
